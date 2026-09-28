@@ -224,6 +224,60 @@
   }
   .mail-groot:hover { color: var(--accent-donker); border-color: var(--accent-donker); }
 
+  /* ---------- Contactformulier ---------- */
+  .formulier {
+    max-width: 42em;
+    margin-top: 2.4rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.1rem 1.4rem;
+  }
+  .formulier .veld-breed { grid-column: 1 / -1; }
+  .formulier label {
+    display: block;
+    font-size: 0.92rem;
+    color: var(--inkt);
+    margin-bottom: 0.3rem;
+  }
+  .formulier input,
+  .formulier select,
+  .formulier textarea {
+    width: 100%;
+    font: inherit;
+    font-size: 1rem;
+    color: var(--inkt);
+    background: var(--wit);
+    border: 1px solid var(--lijn);
+    border-radius: 4px;
+    padding: 0.65rem 0.8rem;
+  }
+  .formulier textarea { min-height: 8.5rem; resize: vertical; }
+  .formulier input:focus,
+  .formulier select:focus,
+  .formulier textarea:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+    border-color: var(--accent);
+  }
+  .formulier button.knop {
+    border: none;
+    cursor: pointer;
+    font: inherit;
+    justify-self: start;
+  }
+  .formulier button.knop:disabled { opacity: 0.6; cursor: wait; }
+  .honingpot { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+  .formulier-melding {
+    grid-column: 1 / -1;
+    font-size: 0.98rem;
+    display: none;
+  }
+  .formulier-melding.ok { display: block; color: var(--accent-donker); }
+  .formulier-melding.fout { display: block; color: #a23b2e; }
+  @media (max-width: 560px) {
+    .formulier { grid-template-columns: 1fr; }
+  }
+
   /* ---------- Voettekst ---------- */
   footer {
     background: var(--nacht-diep);
@@ -337,8 +391,46 @@
 <section id="contact">
   <div class="sectie-inner">
     <h2>Contact</h2>
-    <p>Vragen of een project in gedachten? Mail ons — u krijgt snel antwoord.</p>
+    <p>Vragen of een project in gedachten? Vul het formulier in of mail ons — u krijgt snel antwoord.</p>
     <a class="mail-groot" href="mailto:info@weblotus.be">info@weblotus.be</a>
+
+    <form class="formulier" id="contactformulier" novalidate>
+      <div>
+        <label for="f-naam">Naam *</label>
+        <input type="text" id="f-naam" name="naam" required autocomplete="name">
+      </div>
+      <div>
+        <label for="f-email">E-mail *</label>
+        <input type="email" id="f-email" name="email" required autocomplete="email">
+      </div>
+      <div>
+        <label for="f-bedrijf">Bedrijf</label>
+        <input type="text" id="f-bedrijf" name="bedrijf" autocomplete="organization">
+      </div>
+      <div>
+        <label for="f-telefoon">Telefoon</label>
+        <input type="tel" id="f-telefoon" name="telefoon" autocomplete="tel">
+      </div>
+      <div class="veld-breed">
+        <label for="f-type">Waarover gaat uw vraag? *</label>
+        <select id="f-type" name="type" required>
+          <option value="">Maak een keuze</option>
+          <option value="website">website</option>
+          <option value="automatisering">automatisering</option>
+          <option value="e-marketing">e-marketing</option>
+        </select>
+      </div>
+      <div class="veld-breed">
+        <label for="f-bericht">Uw bericht *</label>
+        <textarea id="f-bericht" name="bericht" required></textarea>
+      </div>
+      <div class="honingpot" aria-hidden="true">
+        <label for="f-website">Laat dit veld leeg</label>
+        <input type="text" id="f-website" name="website" tabindex="-1" autocomplete="off">
+      </div>
+      <p class="formulier-melding" id="formulier-melding" role="status" aria-live="polite"></p>
+      <button type="submit" class="knop">Verstuur</button>
+    </form>
   </div>
 </section>
 
@@ -349,5 +441,58 @@
   </div>
 </footer>
 
+<script>
+(function () {
+  var WEBHOOK_URL = "https://n8n.tail8f5562.ts.net/webhook/e4b13e51-865a-4cc4-8a94-6fb9820cb3b4";
+
+  var form = document.getElementById("contactformulier");
+  var melding = document.getElementById("formulier-melding");
+  var knop = form.querySelector("button[type=submit]");
+
+  function toon(tekst, soort) {
+    melding.textContent = tekst;
+    melding.className = "formulier-melding " + soort;
+  }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    if (form.website.value) { return; } // honingpot gevuld: bot, stil negeren
+
+    if (!form.checkValidity()) {
+      toon("Vul de velden met een sterretje in en controleer uw e-mailadres.", "fout");
+      form.reportValidity();
+      return;
+    }
+
+    var gegevens = {
+      naam: form.naam.value.trim(),
+      email: form.email.value.trim(),
+      bedrijf: form.bedrijf.value.trim(),
+      telefoon: form.telefoon.value.trim(),
+      type: form.type.value,
+      bericht: form.bericht.value.trim()
+    };
+
+    knop.disabled = true;
+    toon("Even geduld, uw aanvraag wordt verstuurd…", "ok");
+
+    fetch(WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(gegevens)
+    })
+    .then(function (r) {
+      if (!r.ok) { throw new Error("status " + r.status); }
+      form.reset();
+      toon("Bedankt! U ontvangt binnen enkele minuten een e-mail van info@weblotus.be.", "ok");
+    })
+    .catch(function () {
+      toon("Verzenden is niet gelukt. Mail ons rechtstreeks op info@weblotus.be.", "fout");
+    })
+    .finally(function () { knop.disabled = false; });
+  });
+})();
+</script>
 </body>
 </html>
