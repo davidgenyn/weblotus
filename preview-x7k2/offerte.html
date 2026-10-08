@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow">
-<title>Bereken uw prijs — Weblotus</title>
+<title>Bereken uw prijsindicatie — Weblotus</title>
 <style>
   @font-face {
     font-family: "Exo 2";
@@ -99,6 +99,19 @@
   .stappenbalk li.klaar .stap-nr { background: var(--accent); border-color: var(--accent); color: var(--wit); }
 
   fieldset { border: none; }
+  .keuzes { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .keuze-kaart {
+    display: grid; grid-template-columns: auto 1fr; gap: 0.25rem 0.8rem;
+    border: 1.5px solid var(--lijn); border-radius: 6px; padding: 1.1rem 1.2rem;
+    cursor: pointer; align-items: start;
+  }
+  .keuze-kaart:hover { border-color: var(--accent); }
+  .keuze-kaart:has(input:checked) { border-color: var(--accent); background: var(--licht); }
+  .keuze-kaart input { width: 1.1rem; height: 1.1rem; margin-top: 0.3rem; accent-color: var(--accent); }
+  .keuze-kaart strong { color: var(--inkt); font-weight: 550; }
+  .keuze-kaart span { grid-column: 2 / 3; font-size: 0.95rem; }
+  .post[hidden] { display: none; }
+  @media (max-width: 560px) { .keuzes { grid-template-columns: 1fr; } }
   fieldset[hidden] { display: none; }
   legend {
     font-size: 1.45rem; font-weight: 450; color: var(--inkt);
@@ -185,7 +198,7 @@
     font-weight: 400; font-size: 1.6rem; color: var(--wit); white-space: nowrap;
   }
   .totaal .per-maand strong { font-size: 1.25rem; }
-  .btw { margin-top: 0.9rem; font-size: 0.85rem; color: #8fa8c2; }
+  .btw { margin-top: 0.9rem; font-size: 0.85rem; color: #a9bdd2; line-height: 1.5; }
 
   /* ---------- Voettekst ---------- */
   footer { background: var(--nacht-diep); color: #8fa8c2; padding: 2.2rem 1.5rem; font-size: 0.92rem; }
@@ -223,22 +236,38 @@
 
 <header>
   <div class="kop-inner">
-    <h1>Bereken uw prijs</h1>
-    <p class="kop-sub">Kies wat u nodig hebt en zie meteen wat het kost. U krijgt daarna een offerte op maat per e-mail.</p>
+    <h1>Bereken uw prijsindicatie</h1>
+    <p class="kop-sub">Kies wat u nodig hebt en zie meteen een prijsindicatie. Na een kort gesprek over uw wensen krijgt u een offerte op maat.</p>
   </div>
 </header>
 
 <main>
   <div class="simulator">
     <form id="offerteformulier" novalidate>
-      <ol class="stappenbalk" aria-label="Stappen">
-        <li class="actief" data-stapnr="1"><span class="stap-nr">1</span>Website</li>
-        <li data-stapnr="2"><span class="stap-nr">2</span>Business</li>
-        <li data-stapnr="3"><span class="stap-nr">3</span>Gegevens</li>
-      </ol>
+      <ol class="stappenbalk" id="stappenbalk" aria-label="Stappen"></ol>
 
-      <!-- Stap 1: Website -->
-      <fieldset data-stap="1">
+      <!-- Keuze -->
+      <fieldset data-stap="keuze">
+        <legend>Wat zoekt u?</legend>
+        <div class="keuzes">
+          <label class="keuze-kaart">
+            <input type="radio" name="pad" value="website">
+            <strong>Website</strong>
+            <span>Een nieuwe website, eventueel met vindbaarheid en AI-automatisering erbij.</span>
+          </label>
+          <label class="keuze-kaart">
+            <input type="radio" name="pad" value="automatisatie">
+            <strong>Automatisatie (zonder website)</strong>
+            <span>U hebt al een website of wilt alleen een taak laten automatiseren.</span>
+          </label>
+        </div>
+        <div class="knoppen">
+          <button type="button" class="knop" data-richting="volgende">Volgende stap</button>
+        </div>
+      </fieldset>
+
+      <!-- Website -->
+      <fieldset data-stap="website" hidden>
         <legend>Uw website</legend>
 
         <div class="post">
@@ -269,15 +298,16 @@
         </div>
 
         <div class="knoppen">
-          <button type="button" class="knop" data-naar="2">Volgende stap</button>
+          <button type="button" class="knop knop-terug" data-richting="vorige">Vorige stap</button>
+          <button type="button" class="knop" data-richting="volgende">Volgende stap</button>
         </div>
       </fieldset>
 
-      <!-- Stap 2: Business -->
-      <fieldset data-stap="2" hidden>
-        <legend>Gevonden worden en automatiseren</legend>
+      <!-- Business / Automatisatie -->
+      <fieldset data-stap="business" hidden>
+        <legend id="business-titel">Gevonden worden en automatiseren</legend>
 
-        <div class="post">
+        <div class="post" id="post-seo_geo">
           <input type="checkbox" id="k-seo_geo" data-id="seo_geo">
           <label class="post-naam" for="k-seo_geo">SEO/GEO-optimalisatie</label>
           <span class="post-prijs" data-prijs="seo_geo"></span>
@@ -288,7 +318,7 @@
           <input type="checkbox" id="k-ai_contactformulier" data-id="ai_contactformulier">
           <label class="post-naam" for="k-ai_contactformulier">AI-intake op contactformulier</label>
           <span class="post-prijs" data-prijs="ai_contactformulier"></span>
-          <p class="post-uitleg">Elke aanvraag via uw website krijgt binnen enkele minuten een persoonlijk antwoord, en u krijgt een samenvatting.</p>
+          <p class="post-uitleg" id="uitleg-ai_contactformulier">Elke aanvraag via uw website krijgt binnen enkele minuten een persoonlijk antwoord, en u krijgt een samenvatting.</p>
         </div>
 
         <div class="post">
@@ -310,13 +340,13 @@
         </div>
 
         <div class="knoppen">
-          <button type="button" class="knop knop-terug" data-naar="1">Vorige stap</button>
-          <button type="button" class="knop" data-naar="3">Volgende stap</button>
+          <button type="button" class="knop knop-terug" data-richting="vorige">Vorige stap</button>
+          <button type="button" class="knop" data-richting="volgende">Volgende stap</button>
         </div>
       </fieldset>
 
-      <!-- Stap 3: Gegevens -->
-      <fieldset data-stap="3" hidden>
+      <!-- Gegevens -->
+      <fieldset data-stap="gegevens" hidden>
         <legend>Uw gegevens</legend>
         <div class="gegevens">
           <div>
@@ -345,8 +375,8 @@
           </div>
         </div>
         <div class="knoppen">
-          <button type="button" class="knop knop-terug" data-naar="2">Vorige stap</button>
-          <button type="submit" class="knop" id="verstuur">Offerte aanvragen</button>
+          <button type="button" class="knop knop-terug" data-richting="vorige">Vorige stap</button>
+          <button type="submit" class="knop" id="verstuur">Prijsindicatie aanvragen</button>
         </div>
       </fieldset>
 
@@ -354,14 +384,14 @@
     </form>
 
     <aside class="overzicht" aria-labelledby="overzicht-titel">
-      <h2 id="overzicht-titel">Uw keuze</h2>
+      <h2 id="overzicht-titel">Uw prijsindicatie</h2>
       <ul id="overzicht-lijst"></ul>
       <p class="leeg" id="overzicht-leeg">Nog niets gekozen.</p>
       <div class="totaal" aria-live="polite">
         <div><span>Eenmalig</span><strong id="totaal-eenmalig">€ 0</strong></div>
         <div class="per-maand"><span>Per maand</span><strong id="totaal-maand">€ 0</strong></div>
       </div>
-      <p class="btw">Alle prijzen excl. btw.</p>
+      <p class="btw">Vrijblijvende prijsindicatie, geen bindende offerte. De definitieve prijs hangt af van uw wensen en volgt na een gesprek. Alle prijzen excl. btw.</p>
     </aside>
   </div>
 </main>
@@ -467,25 +497,84 @@
     melding.className = "melding " + soort;
   }
 
-  function gaNaar(nr) {
-    if (nr === 3 && keuzes().length === 0) {
+  var PADEN = {
+    website:       ["keuze", "website", "business", "gegevens"],
+    automatisatie: ["keuze", "business", "gegevens"]
+  };
+  var NAMEN = { keuze: "Keuze", website: "Website", business: "Business", gegevens: "Gegevens" };
+  var UITLEG_AI = {
+    website: "Elke aanvraag via uw website krijgt binnen enkele minuten een persoonlijk antwoord, en u krijgt een samenvatting.",
+    automatisatie: "Elke aanvraag via het contactformulier op uw bestaande website krijgt binnen enkele minuten een persoonlijk antwoord, en u krijgt een samenvatting."
+  };
+  var huidig = "keuze";
+
+  function gekozenPad() {
+    var r = form.querySelector("input[name=pad]:checked");
+    return r ? r.value : null;
+  }
+  function stappen() { return PADEN[gekozenPad() || "website"]; }
+
+  function tekenStappenbalk() {
+    var ol = document.getElementById("stappenbalk");
+    var lijst = stappen(), pos = lijst.indexOf(huidig);
+    ol.innerHTML = "";
+    lijst.forEach(function (key, i) {
+      var li = document.createElement("li");
+      var naam = (key === "business" && gekozenPad() === "automatisatie") ? "Automatisatie" : NAMEN[key];
+      li.innerHTML = '<span class="stap-nr">' + (i + 1) + "</span>" + naam;
+      if (i === pos) { li.className = "actief"; li.setAttribute("aria-current", "step"); }
+      else if (i < pos) { li.className = "klaar"; }
+      ol.appendChild(li);
+    });
+  }
+
+  function padToepassen() {
+    var pad = gekozenPad();
+    if (pad === "automatisatie") {
+      // websiteposten horen niet bij dit pad: wissen
+      ["basiswebsite", "onderhoud_website", "seo_geo"].forEach(function (id) {
+        document.getElementById("k-" + id).checked = false;
+      });
+      aantalPagina = 0;
+    }
+    document.getElementById("post-seo_geo").hidden = pad === "automatisatie";
+    document.getElementById("business-titel").textContent =
+      pad === "automatisatie" ? "Wat wilt u automatiseren?" : "Gevonden worden en automatiseren";
+    document.getElementById("uitleg-ai_contactformulier").textContent = UITLEG_AI[pad || "website"];
+    bijwerken();
+    tekenStappenbalk();
+  }
+
+  function gaNaar(key) {
+    toon("", "");
+    huidig = key;
+    form.querySelectorAll("fieldset").forEach(function (fs) {
+      fs.hidden = fs.getAttribute("data-stap") !== key;
+    });
+    tekenStappenbalk();
+    form.querySelector("fieldset[data-stap='" + key + "'] legend").scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  function stap(richting) {
+    var lijst = stappen(), pos = lijst.indexOf(huidig);
+    if (richting === "vorige") { if (pos > 0) { gaNaar(lijst[pos - 1]); } return; }
+    if (huidig === "keuze" && !gekozenPad()) {
+      toon("Kies eerst of u een website zoekt of alleen automatisatie.", "fout");
+      return;
+    }
+    var volgende = lijst[pos + 1];
+    if (volgende === "gegevens" && keuzes().length === 0) {
       toon("Kies minstens één onderdeel voordat u verdergaat.", "fout");
       return;
     }
-    toon("", "");
-    form.querySelectorAll("fieldset").forEach(function (fs) {
-      fs.hidden = fs.getAttribute("data-stap") !== String(nr);
-    });
-    form.querySelectorAll(".stappenbalk li").forEach(function (li) {
-      var n = Number(li.getAttribute("data-stapnr"));
-      li.className = n === nr ? "actief" : (n < nr ? "klaar" : "");
-      if (n === nr) { li.setAttribute("aria-current", "step"); } else { li.removeAttribute("aria-current"); }
-    });
-    form.querySelector("fieldset[data-stap='" + nr + "'] legend").scrollIntoView({ behavior: "smooth", block: "center" });
+    gaNaar(volgende);
   }
 
-  form.querySelectorAll("[data-naar]").forEach(function (b) {
-    b.addEventListener("click", function () { gaNaar(Number(b.getAttribute("data-naar"))); });
+  form.querySelectorAll("[data-richting]").forEach(function (b) {
+    b.addEventListener("click", function () { stap(b.getAttribute("data-richting")); });
+  });
+  form.querySelectorAll("input[name=pad]").forEach(function (r) {
+    r.addEventListener("change", function () { toon("", ""); padToepassen(); });
   });
 
   form.addEventListener("submit", function (e) {
@@ -504,6 +593,7 @@
     }
 
     var gegevens = {
+      pad: gekozenPad(),
       naam: naam.value.trim(),
       email: email.value.trim(),
       bedrijf: form.bedrijf.value.trim(),
@@ -524,7 +614,7 @@
     })
     .then(function (r) {
       if (!r.ok) { throw new Error("status " + r.status); }
-      toon("Bedankt! U ontvangt uw offerte per e-mail van info@weblotus.be.", "ok");
+      toon("Bedankt! U ontvangt uw prijsindicatie per e-mail van info@weblotus.be.", "ok");
       knop.hidden = true;
     })
     .catch(function () {
@@ -533,7 +623,7 @@
     .finally(function () { knop.disabled = false; });
   });
 
-  bijwerken();
+  padToepassen();
 })();
 </script>
 </body>
