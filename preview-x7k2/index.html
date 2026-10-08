@@ -166,6 +166,9 @@
     letter-spacing: 0.02em;
   }
   .knop:hover, .knop:focus-visible { background: var(--accent-donker); }
+  .hero-knoppen { display: flex; flex-wrap: wrap; gap: 0.8rem; }
+  .knop-omlijnd { background: transparent; border: 1.5px solid rgba(159, 195, 232, 0.7); padding: calc(0.85rem - 1.5px) calc(1.9rem - 1.5px); }
+  .knop-omlijnd:hover, .knop-omlijnd:focus-visible { background: rgba(159, 195, 232, 0.12); border-color: var(--wit); }
 
   /* ---------- Secties algemeen ---------- */
   section { padding: 4.5rem 1.5rem; }
@@ -391,7 +394,10 @@
   <div class="hero-inner">
     <div class="hero-tekst">
       <h1>Zichtbare website en AI automatisering<br>voor zelfstandigen en KMO's</h1>
-      <a class="knop" href="#contact">Neem contact op</a>
+      <div class="hero-knoppen">
+        <a class="knop" href="#contact">Neem contact op</a>
+        <a class="knop knop-omlijnd" href="offerte.html">Bereken uw prijs</a>
+      </div>
     </div>
     <div class="wl-flow" id="wl-flow"></div>
   </div>
