@@ -219,6 +219,7 @@
     main { padding: 2rem 1.25rem 3.2rem; }
   }
 </style>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
 
@@ -378,6 +379,7 @@
             <input type="text" id="f-website" name="website" tabindex="-1" autocomplete="off">
           </div>
         </div>
+        <div class="cf-turnstile" data-sitekey="0x4AAAAAAFTNEGCCP-dde8Ly" data-language="nl"></div>
         <div class="knoppen">
           <button type="button" class="knop knop-terug" data-richting="vorige">Vorige stap</button>
           <button type="submit" class="knop" id="verstuur">Prijsindicatie aanvragen</button>
@@ -612,6 +614,12 @@
       toon("Het formulier is nog niet gekoppeld. Mail ons op info@weblotus.be.", "fout");
       return;
     }
+    var tsVeld = form.querySelector("[name='cf-turnstile-response']");
+    var token = tsVeld ? tsVeld.value : "";
+    if (!token) {
+      toon("Even geduld, de beveiligingscontrole is nog bezig. Probeer het over enkele seconden opnieuw.", "fout");
+      return;
+    }
 
     var gegevens = {
       pad: gekozenPad(),
@@ -621,7 +629,8 @@
       telefoon: form.telefoon.value.trim(),
       opmerking: form.opmerking.value.trim(),
       omschrijving_automatisering: document.getElementById("k-automatisering").checked ? form.omschrijving.value.trim() : "",
-      keuzes: keuzes()
+      keuzes: keuzes(),
+      turnstile: token
     };
 
     var knop = document.getElementById("verstuur");
@@ -640,6 +649,7 @@
     })
     .catch(function () {
       toon("Verzenden is niet gelukt. Mail ons rechtstreeks op info@weblotus.be.", "fout");
+      if (window.turnstile) { window.turnstile.reset(); }
     })
     .finally(function () { knop.disabled = false; });
   });
