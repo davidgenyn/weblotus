@@ -370,6 +370,7 @@
   .wl-flow .wl-pulse { fill: var(--wl-flow-accent); filter: drop-shadow(0 0 6px var(--wl-flow-accent)); opacity: 0; }
   @media (max-width: 1279px) { .wl-flow { display: none; } }
 </style>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
 
@@ -499,6 +500,9 @@
         <label for="f-website">Laat dit veld leeg</label>
         <input type="text" id="f-website" name="website" tabindex="-1" autocomplete="off">
       </div>
+      <div class="veld-breed">
+        <div class="cf-turnstile" data-sitekey="0x4AAAAAAFTNEGCCP-dde8Ly" data-language="nl"></div>
+      </div>
       <p class="formulier-melding" id="formulier-melding" role="status" aria-live="polite"></p>
       <button type="submit" class="knop">Verstuur</button>
     </form>
@@ -536,13 +540,21 @@
       return;
     }
 
+    var tsVeld = form.querySelector("[name='cf-turnstile-response']");
+    var token = tsVeld ? tsVeld.value : "";
+    if (!token) {
+      toon("Even geduld, de beveiligingscontrole is nog bezig. Probeer het over enkele seconden opnieuw.", "fout");
+      return;
+    }
+
     var gegevens = {
       naam: form.naam.value.trim(),
       email: form.email.value.trim(),
       bedrijf: form.bedrijf.value.trim(),
       telefoon: form.telefoon.value.trim(),
       type: form.type.value,
-      bericht: form.bericht.value.trim()
+      bericht: form.bericht.value.trim(),
+      turnstile: token
     };
 
     knop.disabled = true;
@@ -556,10 +568,12 @@
     .then(function (r) {
       if (!r.ok) { throw new Error("status " + r.status); }
       form.reset();
+      if (window.turnstile) { window.turnstile.reset(); }
       toon("Bedankt! U ontvangt binnen enkele minuten een e-mail van info@weblotus.be.", "ok");
     })
     .catch(function () {
       toon("Verzenden is niet gelukt. Mail ons rechtstreeks op info@weblotus.be.", "fout");
+      if (window.turnstile) { window.turnstile.reset(); }
     })
     .finally(function () { knop.disabled = false; });
   });
