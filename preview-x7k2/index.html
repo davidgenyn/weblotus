@@ -369,6 +369,13 @@
   .wl-flow .wl-handle.wl-in { opacity: 1; }
   .wl-flow .wl-pulse { fill: var(--wl-flow-accent); filter: drop-shadow(0 0 6px var(--wl-flow-accent)); opacity: 0; }
   @media (max-width: 1279px) { .wl-flow { display: none; } }
+  /* ---------- Bevestigingsvenster na verzenden ---------- */
+  .bevestiging { position: fixed; inset: 0; background: rgba(8, 23, 41, 0.72); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 1000; }
+  .bevestiging[hidden] { display: none; }
+  .bevestiging-doos { background: var(--wit); max-width: 520px; width: 100%; border-radius: 10px; padding: 2rem 2rem 1.6rem; text-align: center; box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35); border-top: 5px solid var(--accent); }
+  .bevestiging-doos h2 { margin: 0 0 0.8rem; color: var(--nacht); font-size: 1.5rem; }
+  .bevestiging-doos p { margin: 0 0 1rem; color: var(--tekst); line-height: 1.6; }
+  .bevestiging-doos .aftellen { font-size: 0.92rem; color: #5a6b7d; }
 </style>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
@@ -509,6 +516,15 @@
   </div>
 </section>
 
+<div class="bevestiging" id="bevestiging" role="dialog" aria-modal="true" aria-labelledby="bev-titel" hidden>
+  <div class="bevestiging-doos">
+    <h2 id="bev-titel">Dank voor uw bericht</h2>
+    <p>Behoudens veiligheidsrisico ontvangt u binnen enkele minuten een e-mail van info@weblotus.be.</p>
+    <p class="aftellen">Dit venster sluit over <strong id="bev-sec">7</strong> seconden.</p>
+    <button type="button" class="knop" id="bev-knop">Sluiten</button>
+  </div>
+</div>
+
 <footer>
   <div class="voet-inner">
     <span>Weblotus — België &amp; Nederland</span>
@@ -569,7 +585,8 @@
       if (!r.ok) { throw new Error("status " + r.status); }
       form.reset();
       if (window.turnstile) { window.turnstile.reset(); }
-      toon("Bedankt! U ontvangt binnen enkele minuten een e-mail van info@weblotus.be.", "ok");
+      toon("", "");
+      toonBevestiging();
     })
     .catch(function () {
       toon("Verzenden is niet gelukt. Mail ons rechtstreeks op info@weblotus.be.", "fout");
@@ -577,6 +594,28 @@
     })
     .finally(function () { knop.disabled = false; });
   });
+
+  // Bevestigingsvenster: 7 seconden aftellen, daarna sluiten (we staan al op de startpagina)
+  function toonBevestiging() {
+    var venster = document.getElementById("bevestiging");
+    var sec = document.getElementById("bev-sec");
+    var sluitKnop = document.getElementById("bev-knop");
+    var over = 7;
+    var klok;
+    venster.hidden = false;
+    sluitKnop.focus();
+    function sluit() {
+      clearInterval(klok);
+      venster.hidden = true;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    klok = setInterval(function () {
+      over--;
+      sec.textContent = over;
+      if (over <= 0) { sluit(); }
+    }, 1000);
+    sluitKnop.onclick = sluit;
+  }
 })();
 </script>
 <script>
