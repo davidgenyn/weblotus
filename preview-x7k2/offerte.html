@@ -429,8 +429,10 @@
   // Webhook van de n8n-workflow "Offerte" op de Dell. Invullen in stap 3.
   var WEBHOOK_URL = "https://lotusserver.tail8f5562.ts.net/webhook/b2d6ca20-16f1-4796-b87a-2b30a2648412";
 
-  // Zelfde prijzen als in de Sheet "Tarieven". Een prijs wijzigen = op beide plaatsen.
-  // n8n rekent de offerte zelf uit de Sheet; deze lijst dient alleen voor de live berekening.
+  // Prijzen komen uit de Sheet "Tarieven" via Apps Script (zie TARIEVEN.md in de repo).
+  // Een prijs wijzigen = alleen in de Sheet. Deze lijst is alleen RESERVE als het ophalen mislukt.
+  // n8n rekent de offerte zelf ook uit dezelfde Sheet.
+  var TARIEVEN_URL = "https://script.google.com/macros/s/AKfycbz3kDEfxImBMM3_h2Dtqx-KHuIqwIf1SCkhCtKgXPiKoUAvr2WGEv9POzrPSthFvlqnKw/exec";
   var TARIEVEN = {
     basiswebsite:        { post: "Basiswebsite (tot 4 pagina's)",     betaling: "eenmalig",    prijs: 1100, vanaf: false },
     extra_pagina:        { post: "Extra pagina (per stuk)",           betaling: "eenmalig",    prijs: 120,  vanaf: false },
@@ -449,13 +451,16 @@
   function euro(n) { return "€ " + n.toLocaleString("nl-BE"); }
 
   // Prijzen naast elke post invullen
-  document.querySelectorAll("[data-prijs]").forEach(function (el) {
-    var t = TARIEVEN[el.getAttribute("data-prijs")];
-    var tekst = (t.vanaf ? "vanaf " : "") + euro(t.prijs);
-    if (t.betaling === "maandelijks") { tekst += " <small>per maand</small>"; }
-    if (el.getAttribute("data-prijs") === "extra_pagina") { tekst += " <small>per pagina</small>"; }
-    el.innerHTML = tekst;
-  });
+  function vulPrijzen() {
+    document.querySelectorAll("[data-prijs]").forEach(function (el) {
+      var t = TARIEVEN[el.getAttribute("data-prijs")];
+      var tekst = (t.vanaf ? "vanaf " : "") + euro(t.prijs);
+      if (t.betaling === "maandelijks") { tekst += " <small>per maand</small>"; }
+      if (el.getAttribute("data-prijs") === "extra_pagina") { tekst += " <small>per pagina</small>"; }
+      el.innerHTML = tekst;
+    });
+  }
+  vulPrijzen();
 
   function aiGekozen() {
     return document.getElementById("k-ai_contactformulier").checked ||
@@ -688,6 +693,31 @@
   }
 
   padToepassen();
+
+  // Actuele prijzen ophalen uit de Sheet "Tarieven" (Apps Script).
+  // Alleen prijs en vanaf worden overgenomen; lukt het niet binnen 5 s, dan blijft de reserve staan.
+  if (TARIEVEN_URL.indexOf("https://") === 0) {
+    var ctrl = window.AbortController ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctrl) { ctrl.abort(); } }, 5000);
+    fetch(TARIEVEN_URL, ctrl ? { signal: ctrl.signal } : {})
+      .then(function (r) { if (!r.ok) { throw new Error("HTTP " + r.status); } return r.json(); })
+      .then(function (data) {
+        var rijen = data && data.tarieven;
+        if (!Array.isArray(rijen)) { throw new Error("onverwacht antwoord"); }
+        rijen.forEach(function (rij) {
+          var t = TARIEVEN[rij.id];
+          var p = Number(rij.prijs);
+          if (t && isFinite(p) && p >= 0) {
+            t.prijs = p;
+            t.vanaf = rij.vanaf === true;
+          }
+        });
+        vulPrijzen();
+        bijwerken();
+      })
+      .catch(function (e) { console.warn("Tarieven niet geladen, reserveprijzen gebruikt:", e); })
+      .finally(function () { clearTimeout(timer); });
+  }
 })();
 </script>
 </body>
