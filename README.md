@@ -11,7 +11,7 @@ Bedrijfssite van **Weblotus** (David Genyn): zichtbare websites, AI-automatiseri
 1. [Overzicht: wat staat waar](#1-overzicht-wat-staat-waar)
 2. [Domeinnaam en DNS (Vimexx)](#2-domeinnaam-en-dns-vimexx)
 3. [E-mail info@weblotus.be](#3-e-mail-infoweblotusbe)
-4. [Hosting: GitHub Pages](#4-hosting-github-pages)
+4. [Hosting: GitHub Pages en SSL-certificaat](#4-hosting-github-pages-en-ssl-certificaat)
 5. [Bestanden in deze repo](#5-bestanden-in-deze-repo)
 6. [De pagina's](#6-de-paginas)
 7. [Contactformulier (project 6a)](#7-contactformulier-project-6a)
@@ -83,18 +83,47 @@ Wijzig je het wachtwoord van de mailbox, pas het dan ook aan in de SMTP- en IMAP
 
 ---
 
-## 4. Hosting: GitHub Pages
+## 4. Hosting: GitHub Pages en SSL-certificaat
+
+### Wat is GitHub Pages?
+
+GitHub Pages is de gratis webhosting van GitHub. GitHub neemt de bestanden uit deze repo (HTML, afbeeldingen) en zet ze online als website. Er is geen eigen server nodig.
 
 | Gegeven | Waarde |
 |---|---|
 | Repo | github.com/davidgenyn/weblotus (vroeger davidgenyn/lotusflow) |
-| Publicatie | GitHub Pages, eigen domein weblotus.be |
+| Soort site | Statische site: alleen HTML, CSS en JavaScript, geen database of PHP |
+| Eigen domein | weblotus.be |
 | Live (preview) | https://weblotus.be/preview-x7k2/ |
 | Hoofddomein | placeholder |
+| Kosten | gratis |
+
+**Instellingen** staan in de repo onder **Settings → Pages**:
+
+| Instelling | Wat ze doet |
+|---|---|
+| Source / Branch | Uit welke branch en map GitHub de site publiceert |
+| Custom domain | `weblotus.be`. GitHub bewaart dit normaal in een bestand `CNAME` in de hoofdmap van de repo: niet verwijderen, anders werkt het domein niet meer. |
+| Enforce HTTPS | Stuurt iedereen die `http://` intypt automatisch door naar `https://` |
 
 **Let op:** GitHub Pages publiceert **alle** bestanden in deze repo. Zet hier dus nooit wachtwoorden, API-keys of geheime sleutels.
 
 Een upload is na enkele minuten zichtbaar. Ververs de site daarna met **Ctrl + F5**.
+
+### SSL-certificaat (https)
+
+| Gegeven | Waarde |
+|---|---|
+| Wie levert het certificaat? | **GitHub Pages**, gratis, uitgegeven door Let's Encrypt |
+| Voor welk domein? | weblotus.be (en www.weblotus.be via de CNAME) |
+| Vernieuwen | Automatisch door GitHub, je hoeft niets te doen |
+| Voorwaarde | De DNS-records bij Vimexx (4 A-records + CNAME www, zie punt 2) moeten naar GitHub blijven wijzen. Verander je die, dan kan GitHub het certificaat niet vernieuwen. |
+| Controle | Hangslotje in de adresbalk van de browser bij https://weblotus.be |
+
+Het SSL-certificaat van de **website** komt dus van GitHub, niet van Vimexx.
+De **e-mail** (mail.zxcs.nl, poorten 465 en 993) gebruikt het certificaat van Vimexx. Daar hoef je niets voor te doen.
+
+**Probleem met https?** Ga naar Settings → Pages. Staat daar een waarschuwing over het certificaat of DNS, kijk dan eerst de DNS-records bij Vimexx na. Daarna kan je "Custom domain" leegmaken, opslaan, opnieuw `weblotus.be` invullen en opslaan. GitHub vraagt dan een nieuw certificaat aan, wat even kan duren.
 
 ---
 
@@ -228,6 +257,6 @@ Alle pagina's moeten in **dezelfde map** (`preview-x7k2/`) staan, anders werken 
 | Dell | De formulieren (6a en 6b) draaien op de Dell. De Dell is bedoeld om te testen. Voor de lancering moeten de workflows naar een server die altijd aan staat. De prijzen op de site werken al zonder Dell. |
 | Privacypagina | `https://weblotus.be/privacy.html` is opgegeven bij Google (OAuth-app) maar moet nog gemaakt worden |
 | Lettertype | `offerte.html` vraagt `fonts/exo2-400.woff2` op, maar dat bestand staat niet in de repo (404) |
-| Enforce HTTPS | Nakijken of "Enforce HTTPS" aanstaat in Settings → Pages |
+| Enforce HTTPS | Nakijken of "Enforce HTTPS" aangevinkt is in Settings → Pages, en welke branch/map bij Source staat |
 | Lancering | Hoofddomein van placeholder naar de echte site, en `noindex` weghalen |
 | "vanaf" in de offertemail | Nakijken of de mail van 6b "vanaf" toont bij Basiswebsite en SEO/GEO |
