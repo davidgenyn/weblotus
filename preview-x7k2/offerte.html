@@ -695,11 +695,11 @@
   padToepassen();
 
   // Actuele prijzen ophalen uit de Sheet "Tarieven" (Apps Script).
-  // Alleen prijs en vanaf worden overgenomen; lukt het niet binnen 5 s, dan blijft de reserve staan.
+  // De pagina toont eerst de reserveprijzen en vervangt ze zodra het antwoord binnenkomt,
+  // ook als Google er even over doet. Alleen prijs en vanaf worden overgenomen.
+  // Lukt het helemaal niet, dan blijft de reserve staan.
   if (TARIEVEN_URL.indexOf("https://") === 0) {
-    var ctrl = window.AbortController ? new AbortController() : null;
-    var timer = setTimeout(function () { if (ctrl) { ctrl.abort(); } }, 5000);
-    fetch(TARIEVEN_URL, ctrl ? { signal: ctrl.signal } : {})
+    fetch(TARIEVEN_URL)
       .then(function (r) { if (!r.ok) { throw new Error("HTTP " + r.status); } return r.json(); })
       .then(function (data) {
         var rijen = data && data.tarieven;
@@ -715,8 +715,7 @@
         vulPrijzen();
         bijwerken();
       })
-      .catch(function (e) { console.warn("Tarieven niet geladen, reserveprijzen gebruikt:", e); })
-      .finally(function () { clearTimeout(timer); });
+      .catch(function (e) { console.warn("Tarieven niet geladen, reserveprijzen gebruikt:", e); });
   }
 })();
 </script>
